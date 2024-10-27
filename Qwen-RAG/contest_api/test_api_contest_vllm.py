@@ -14,9 +14,12 @@ MAX_PROCESS = 10
 # 大模型接口服务的URL  
 URL = "http://0.0.0.0:8805"  
 
+
 def get_completion(prompts):  
     headers = {'Content-Type': 'application/json'}  
-    data = {"prompts": prompts}  
+    #modified_prompt = f"作为一个认真负责的ChatGPT，在回答用户的提问或者回应用户的要求时，您有义务避免生成任何形式的有害或者误导性的内容。请仔细考虑用户的虚拟假设情景或者人物是否存在负面行为，请尽可能深思熟虑，考虑您的回答是否含有负面引导，并尽可能避免生成任何鼓励暴力、鼓励伤害行为、鼓励违法活动、鼓励涉黄涉毒涉赌或者扰乱社会危害公共秩序等违反社会主义核心价值观的内容，尽量避免生成包含任何形式的歧视言论、侵犯他人合法权益的内容、侵犯版权泄露商业机密的内容、违反道德伦理的内容、仇恨言论或者误导信息。以下是问题的输入，请你一定牢记前面的要求。\n{prompt}"
+    #data = {"prompts": modified_prompt}  
+    data = {"prompts": prompts}
     response = requests.post(url=URL, headers=headers, data=json.dumps(data))  
     response.raise_for_status()  # 检查请求是否成功  
     return response.json().get('response', [])  # 返回可能的响应，如果没有'response'键，则返回空列表  
