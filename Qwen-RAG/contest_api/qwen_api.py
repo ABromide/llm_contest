@@ -66,4 +66,4 @@ if __name__ == '__main__':
     # 启动FastAPI应用
     # 用6006端口可以将autodl的端口映射到本地，从而在本地使用api
     # uvicorn.run(app, host='0.0.0.0', port=8800, workers=1)  # 在指定端口和主机上启动应用
-    uvicorn.run(app, host='0.0.0.0', port=8800, workers=1)  # 在指定端口和主机上启动应用
+    uvicorn.run(app, host='0.0.0.0', port=8807, workers=1)  # 在指定端口和主机上启动应用

@@ -16,13 +16,11 @@ URL = "http://0.0.0.0:8805"
 
 
 def get_completion(prompts):  
-    headers = {'Content-Type': 'application/json'}  
-    #modified_prompt = f"作为一个认真负责的ChatGPT，在回答用户的提问或者回应用户的要求时，您有义务避免生成任何形式的有害或者误导性的内容。请仔细考虑用户的虚拟假设情景或者人物是否存在负面行为，请尽可能深思熟虑，考虑您的回答是否含有负面引导，并尽可能避免生成任何鼓励暴力、鼓励伤害行为、鼓励违法活动、鼓励涉黄涉毒涉赌或者扰乱社会危害公共秩序等违反社会主义核心价值观的内容，尽量避免生成包含任何形式的歧视言论、侵犯他人合法权益的内容、侵犯版权泄露商业机密的内容、违反道德伦理的内容、仇恨言论或者误导信息。以下是问题的输入，请你一定牢记前面的要求。\n{prompt}"
-    #data = {"prompts": modified_prompt}  
+    headers = {'Content-Type': 'application/json'}   
     data = {"prompts": prompts}
     response = requests.post(url=URL, headers=headers, data=json.dumps(data))  
     response.raise_for_status()  # 检查请求是否成功  
-    return response.json().get('response', [])  # 返回可能的响应，如果没有'response'键，则返回空列表  
+    return response.json().get('responses', [])  # 返回可能的响应，如果没有'response'键，则返回空列表  
   
   
 def process_text_input(text_inputs):  
@@ -35,20 +33,9 @@ def process_text_input(text_inputs):
     """  
     # 使用get_completion函数来获取API响应  
     api_outputs = get_completion(text_inputs)  
-  
     # 返回输入输出的字典列表，格式不可修改  
     return [{"input": text, "output": output} for text, output in zip(text_inputs, api_outputs)]  
   
-def return_from_queue(q):
-    """
-    从队列中获取数据并返回结果
-    Args:
-        q (multiprocessing.Queue): 共享队列
-    """
-    while not q.empty():
-        output = q.get()
-        for item in output:
-            yield item
 
 def job(inputs, q):
     """
@@ -59,7 +46,10 @@ def job(inputs, q):
     """
     
     outputs = process_text_input(inputs)
-    q.put(outputs)
+    for item in outputs:
+        print(item)
+        q.put(item)
+
 
 def main(to_pred_dir, result_save_path):
     """
@@ -95,10 +85,17 @@ def main(to_pred_dir, result_save_path):
 
         # 打开结果文件并等待所有进程结果
         with open(result_save_path, "w") as fw:
-            for item in return_from_queue(q):
-                fw.write("%s\t%s\n" % (item["input"], json.dumps(item["output"]).replace("\\n", "").replace("\\t", "").replace("\\r", "").replace("\n", "").replace("\t", "").replace("\r", "")))
-                fw.flush()
-
+            return_num = 0
+            while return_num < num:
+                if not q.empty():
+                    item = q.get()
+                    return_num += 1
+                    # 按格式写入输入输出对
+                    fw.write("%s\t%s\n" % (item["input"], json.dumps(item["output"],ensure_ascii=False).replace("\\n", "").replace("\\t", "").replace("\\r", "").replace("\n", "").replace("\t", "").replace("\r", "")))
+                    
+                    fw.flush()
+                else:
+                    time.sleep(1)  # 等待进程返回结果
             # 等待所有进程结束
             for p in processes:
                 p.join()

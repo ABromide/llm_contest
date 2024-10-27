@@ -12,7 +12,7 @@ import json
 MAX_PROCESS = 10  
 
 # 大模型接口服务的URL  
-URL = "http://0.0.0.0:8805"  
+URL = "http://0.0.0.0:8802"  
 
 def get_completion(prompts):  
     headers = {'Content-Type': 'application/json'}  
@@ -111,8 +111,11 @@ def main(to_pred_dir, result_save_path):
         # 打开结果文件并等待所有进程结果
         with open(result_save_path, "w") as fw:
             for item in return_from_queue(q):
-                fw.write("%s\t%s\t%s\n" % (json.dumps(item["input"]).replace("\\n", "").replace("\\t", "").replace("\\r", "").replace("\n", "").replace("\t", "").replace("\r", ""), json.dumps(item["output"]).replace("\\n", "").replace("\\t", "").replace("\\r", "").replace("\n", "").replace("\t", "").replace("\r", ""), json.dumps(item["evaluate"]).replace("\\n", "").replace("\\t", "").replace("\\r", "").replace("\n", "").replace("\t", "").replace("\r", "")))
-                fw.flush()
+                
+                if item["evaluate"] == "1":
+                
+                    fw.write("%s\t%s\t%s\n" % (json.dumps(item["input"]).replace("\\n", "").replace("\\t", "").replace("\\r", "").replace("\n", "").replace("\t", "").replace("\r", ""), json.dumps(item["output"]).replace("\\n", "").replace("\\t", "").replace("\\r", "").replace("\n", "").replace("\t", "").replace("\r", ""), json.dumps(item["evaluate"]).replace("\\n", "").replace("\\t", "").replace("\\r", "").replace("\n", "").replace("\t", "").replace("\r", "")))
+                    fw.flush()
 
             # 等待所有进程结束
             for p in processes:
